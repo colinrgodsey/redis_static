@@ -1800,7 +1800,7 @@ void redisAsciiArt(void) {
     zfree(buf);
 }
 
-int main(int argc, char **argv) {
+int redis_main(int argc, char **argv) {
     long long start;
 
     initServerConfig();

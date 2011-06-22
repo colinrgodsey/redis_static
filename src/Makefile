@@ -124,6 +124,7 @@ redis-check-aof.o: redis-check-aof.c fmacros.h config.h
 redis-check-dump.o: redis-check-dump.c lzf.h
 redis-cli.o: redis-cli.c fmacros.h version.h ../deps/hiredis/hiredis.h \
   sds.h zmalloc.h ../deps/linenoise/linenoise.h help.h
+redis_main.o: redis_main.c
 redis.o: redis.c redis.h fmacros.h config.h ae.h sds.h dict.h adlist.h \
   zmalloc.h anet.h zipmap.h ziplist.h intset.h version.h util.h \
   asciilogo.h
@@ -162,8 +163,11 @@ dependencies:
 ../deps/jemalloc/lib/libjemalloc.a:
 	cd ../deps/jemalloc && ./configure $(JEMALLOC_CFLAGS) --with-jemalloc-prefix=je_ --enable-cc-silence && $(MAKE) lib/libjemalloc.a
 
-redis-server: $(OBJ)
-	$(QUIET_CC)$(CC) -o $(PRGNAME) $(CCOPT) $(DEBUG) $(OBJ) $(CCLINK) $(ALLOC_LINK)
+redis-server: redis_main.o redis_server.a
+	$(QUIET_CC)$(CC) -o $(PRGNAME) $(CCOPT) $(DEBUG) redis_main.o redis_server.a $(CCLINK) $(ALLOC_LINK)
+
+redis_server.a: $(OBJ)
+	ar rcs redis_server.a $(OBJ)
 
 redis-benchmark: dependencies $(BENCHOBJ)
 	@cd ../deps/hiredis && $(MAKE) static
@@ -229,3 +233,4 @@ install: all
 	$(INSTALL) $(CLIPRGNAME) $(INSTALL_BIN)
 	$(INSTALL) $(CHECKDUMPPRGNAME) $(INSTALL_BIN)
 	$(INSTALL) $(CHECKAOFPRGNAME) $(INSTALL_BIN)
+
