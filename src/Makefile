@@ -13,12 +13,12 @@ ifeq ($(uname_S),Linux)
 endif
 
 ifeq ($(uname_S),SunOS)
-  CFLAGS?=-std=c99 -pedantic $(OPTIMIZATION) -Wall -W -D__EXTENSIONS__ -D_XPG6
-  CCLINK?=-ldl -lnsl -lsocket -lm -lpthread
+  CFLAGS?=-std=c99 -pedantic $(OPTIMIZATION) -Wall -W -D__EXTENSIONS__ -D_XPG6  -m64 -fPIC
+  CCLINK?=-ldl -lnsl -lsocket -lm -lpthread  -m64 -fPIC
   DEBUG?=-g -ggdb 
 else
-  CFLAGS?=-std=c99 -pedantic $(OPTIMIZATION) -Wall -W $(ARCH) $(PROF)
-  CCLINK?=-lm -pthread
+  CFLAGS?=-std=c99 -pedantic $(OPTIMIZATION) -Wall -W $(ARCH) $(PROF) -m64 -fPIC
+  CCLINK?=-lm -pthread  -fPIC -m64
   DEBUG?=-g -rdynamic -ggdb 
 endif
 
@@ -161,13 +161,16 @@ dependencies:
 	@cd ../deps/linenoise && $(MAKE) ARCH="$(ARCH)"
 
 ../deps/jemalloc/lib/libjemalloc.a:
-	cd ../deps/jemalloc && ./configure $(JEMALLOC_CFLAGS) --with-jemalloc-prefix=je_ --enable-cc-silence && $(MAKE) lib/libjemalloc.a
+	cd ../deps/jemalloc && ./configure CFLAGS=-fPIC $(JEMALLOC_CFLAGS) --with-jemalloc-prefix=je_ --enable-pic --enable-cc-silence && $(MAKE) lib/libjemalloc.a
+
+../deps/kyotocabinet/libkyotocabinet.a:
+	cd ../deps/kyotocabinet && autoconf && ./configure && make
 
 redis-server: redis_main.o redis_server.a
-	$(QUIET_CC)$(CC) -o $(PRGNAME) $(CCOPT) $(DEBUG) redis_main.o redis_server.a $(CCLINK) $(ALLOC_LINK)
+	$(QUIET_CC)$(CC) -o $(PRGNAME) $(CCOPT) $(DEBUG) redis_main.o redis_server.a $(CCLINK)
 
-redis_server.a: $(OBJ)
-	ar rcs redis_server.a $(OBJ)
+redis_server.a: $(OBJ) ../deps/kyotocabinet/libkyotocabinet.a
+	ar rcs redis_server.a $(OBJ) ../deps/kyotocabinet/libkyotocabinet.a  $(ALLOC_DEP)
 
 redis-benchmark: dependencies $(BENCHOBJ)
 	@cd ../deps/hiredis && $(MAKE) static
@@ -194,7 +197,7 @@ redis-check-aof: $(CHECKAOFOBJ)
 	$(QUIET_CC)$(CC) -c $(CFLAGS) $(DEBUG) $(COMPILE_TIME) $<
 
 clean:
-	rm -rf $(PRGNAME) $(BENCHPRGNAME) $(CLIPRGNAME) $(CHECKDUMPPRGNAME) $(CHECKAOFPRGNAME) *.o *.gcda *.gcno *.gcov
+	rm -rf $(PRGNAME) $(BENCHPRGNAME) $(CLIPRGNAME) $(CHECKDUMPPRGNAME) $(CHECKAOFPRGNAME) *.o *.gcda *.gcno *.gcov redis_server.a
 
 dep:
 	$(CC) -MM *.c -I ../deps/hiredis -I ../deps/linenoise
@@ -212,7 +215,7 @@ log:
 	@echo ""
 	@echo "WARNING: if it fails under Linux you probably need to install libc6-dev-i386"
 	@echo ""
-	$(MAKE) ARCH="-m32" JEMALLOC_CFLAGS='CFLAGS="-std=gnu99 -Wall -pipe -g3 -fvisibility=hidden -O3 -funroll-loops -m32"'
+	$(MAKE) ARCH="-m32" JEMALLOC_CFLAGS='CFLAGS:="-std=gnu99 -Wall -pipe -g3 -fvisibility=hidden -O3 -funroll-loops -m32"'
 
 gprof:
 	$(MAKE) PROF="-pg"
