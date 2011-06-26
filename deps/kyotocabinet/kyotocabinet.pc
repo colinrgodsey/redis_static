@@ -11,5 +11,5 @@ Name: Kyoto Cabinet
 Description: a straightforward implementation of DBM
 Version: 1.2.63
 Libs: -L${libdir} -lkyotocabinet
-Libs.private: -lz -lstdc++ -lrt -lpthread -lm -lc 
+Libs.private: -lz -lstdc++ -lpthread -lm -lc 
 Cflags: -I${includedir}

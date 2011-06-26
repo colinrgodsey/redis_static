@@ -35,10 +35,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "ae.h"
 #include "zmalloc.h"
 #include "config.h"
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
@@ -321,6 +324,8 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         }
 
         numevents = aeApiPoll(eventLoop, tvp);
+
+        aeLock();
         for (j = 0; j < numevents; j++) {
             aeFileEvent *fe = &eventLoop->events[eventLoop->fired[j].fd];
             int mask = eventLoop->fired[j].mask;
@@ -340,10 +345,14 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
             }
             processed++;
         }
+        aeUnlock();
     }
     /* Check time events */
-    if (flags & AE_TIME_EVENTS)
+    if (flags & AE_TIME_EVENTS) {
+    	aeLock();
         processed += processTimeEvents(eventLoop);
+        aeUnlock();
+    }
 
     return processed; /* return the number of processed file/time events */
 }
@@ -372,11 +381,22 @@ int aeWait(int fd, int mask, long long milliseconds) {
     }
 }
 
+void aeLock() {
+	pthread_mutex_lock(&mutex);
+}
+
+void aeUnlock() {
+	pthread_mutex_unlock(&mutex);
+}
+
 void aeMain(aeEventLoop *eventLoop) {
     eventLoop->stop = 0;
     while (!eventLoop->stop) {
+    	aeLock();
         if (eventLoop->beforesleep != NULL)
             eventLoop->beforesleep(eventLoop);
+        aeUnlock();
+
         aeProcessEvents(eventLoop, AE_ALL_EVENTS);
     }
 }

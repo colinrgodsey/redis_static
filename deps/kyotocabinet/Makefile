@@ -8,7 +8,7 @@
 
 
 # Generic settings
-SHELL = /bin/bash
+SHELL = /bin/sh
 
 # Package information
 PACKAGE = kyotocabinet
@@ -22,7 +22,7 @@ FORMATVER = 5
 
 # Targets
 HEADERFILES = kccommon.h kcutil.h kcthread.h kcfile.h kccompress.h kccompare.h kcmap.h kcregex.h kcdb.h kcplantdb.h kcprotodb.h kcstashdb.h kccachedb.h kchashdb.h kcdirdb.h kcpolydb.h kcdbext.h kclangc.h
-LIBRARYFILES = libkyotocabinet.a libkyotocabinet.so.11.6.0 libkyotocabinet.so.11 libkyotocabinet.so
+LIBRARYFILES = libkyotocabinet.a libkyotocabinet.11.6.0.dylib libkyotocabinet.11.dylib libkyotocabinet.dylib
 LIBOBJFILES = kcutil.o kcthread.o kcfile.o kccompress.o kccompare.o kcmap.o kcregex.o kcdb.o kcplantdb.o kcprotodb.o kcstashdb.o kccachedb.o kchashdb.o kcdirdb.o kcpolydb.o kcdbext.o kclangc.o
 COMMANDFILES = kcutiltest kcutilmgr kcprototest kcstashtest kccachetest kcgrasstest kchashtest kchashmgr kctreetest kctreemgr kcdirtest kcdirmgr kcforesttest kcforestmgr kcpolytest kcpolymgr kclangctest
 MAN1FILES = kcutiltest.1 kcutilmgr.1 kcprototest.1 kcstashtest.1 kccachetest.1 kcgrasstest.1 kchashtest.1 kchashmgr.1 kctreetest.1 kctreemgr.1 kcdirtest.1 kcdirmgr.1 kcforesttest.1 kcforestmgr.1 kcpolytest.1 kcpolymgr.1 kclangctest.1
@@ -49,14 +49,14 @@ CXX = g++
 CPPFLAGS = -I. -I$(INCLUDEDIR) -I/usr/local/include -DNDEBUG -D_GNU_SOURCE=1 -D_FILE_OFFSET_BITS=64 -D_REENTRANT -D__EXTENSIONS__ -D_MYZLIB -D_MYGCCATOMIC \
   -D_KC_PREFIX="\"$(prefix)\"" -D_KC_INCLUDEDIR="\"$(INCLUDEDIR)\"" \
   -D_KC_LIBDIR="\"$(LIBDIR)\"" -D_KC_BINDIR="\"$(BINDIR)\"" -D_KC_LIBEXECDIR="\"$(LIBEXECDIR)\"" \
-  -D_KC_APPINC="\"-I$(INCLUDEDIR)\"" -D_KC_APPLIBS="\"-L$(LIBDIR) -lkyotocabinet -lz -lstdc++ -lrt -lpthread -lm -lc \""
-CFLAGS = -m64 -g -O2 -Wall -ansi -pedantic -fPIC -fsigned-char -g0 -O2
-CXXFLAGS = -m64 -g -O2 -Wall -fPIC -fsigned-char -g0 -O2
-LDFLAGS = -L. -L$(LIBDIR) -L/usr/local/lib -Wl,-rpath-link,.:/usr/local/lib:.:/usr/local/lib: -Wl,--as-needed
+  -D_KC_APPINC="\"-I$(INCLUDEDIR)\"" -D_KC_APPLIBS="\"-L$(LIBDIR) -lkyotocabinet -lz -lstdc++ -lpthread -lm -lc \""
+CFLAGS = -m64 -g -O2 -Wall -ansi -pedantic -fPIC -fsigned-char -g0 -O2 -Os
+CXXFLAGS = -m64 -g -O2 -Wall -fPIC -fsigned-char -g0 -O2 -Os
+LDFLAGS = -L. -L$(LIBDIR) -L/usr/local/lib
 CMDLDFLAGS = 
-CMDLIBS = 
-LIBS = -lz -lstdc++ -lrt -lpthread -lm -lc 
-RUNENV = LD_LIBRARY_PATH=.:/usr/local/lib:
+CMDLIBS =  -lz -lstdc++ -lpthread -lm -lc 
+LIBS = -lz -lstdc++ -lpthread -lm -lc 
+RUNENV = DYLD_LIBRARY_PATH=.:/usr/local/lib:
 POSTCMD = true
 
 

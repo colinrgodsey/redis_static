@@ -114,4 +114,7 @@ void aeMain(aeEventLoop *eventLoop);
 char *aeGetApiName(void);
 void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep);
 
+void aeLock();
+void aeUnlock();
+
 #endif
