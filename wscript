@@ -18,7 +18,8 @@ def configure(conf):
 def build(bld):
   obj = bld.new_task_gen('cxx', 'shlib', 'node_addon')
   obj.target = 'redis_shared'
-  obj.source = "redis_shared.cc"
-  obj.linkflags  = [os.getcwd() + "/src/redis_server.a"] 
+  obj.source = ["redis_shared.cc"]
+  obj.includes = "./src"
+  obj.linkflags  = [os.getcwd() + "/src/redis_server.a", 
 	os.getcwd() + "/deps/jemalloc/lib/libjemalloc.a"]
  

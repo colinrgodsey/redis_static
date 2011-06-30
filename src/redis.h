@@ -9,7 +9,7 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
+
 #include <string.h>
 #include <time.h>
 #include <limits.h>
@@ -20,14 +20,20 @@
 #include <syslog.h>
 #include <netinet/in.h>
 
-#include "ae.h"     /* Event driven programming library */
-#include "sds.h"    /* Dynamic safe strings */
+#ifndef REDIS_STATIC_LIB
+	#include <stdlib.h>
+
+#endif
+
+	#include "ae.h"     /* Event driven programming library */
+	#include "sds.h"    /* Dynamic safe strings */
+	#include "adlist.h" /* Linked lists */
+	#include "zmalloc.h" /* total memory usage aware version of malloc/free */
+	#include "anet.h"   /* Networking the easy way */
+	#include "zipmap.h" /* Compact string -> string data structure */
+	#include "ziplist.h" /* Compact list data structure */
 #include "dict.h"   /* Hash tables */
-#include "adlist.h" /* Linked lists */
-#include "zmalloc.h" /* total memory usage aware version of malloc/free */
-#include "anet.h"   /* Networking the easy way */
-#include "zipmap.h" /* Compact string -> string data structure */
-#include "ziplist.h" /* Compact list data structure */
+
 #include "intset.h" /* Compact integer set structure */
 #include "version.h"
 #include "util.h"
@@ -289,7 +295,11 @@ typedef struct vmPointer {
 } while(0);
 
 typedef struct redisDb {
+#ifndef REDIS_STATIC_LIB
     dict *dict;                 /* The keyspace for this DB */
+#else
+    dict *_dict;
+#endif
     dict *expires;              /* Timeout of keys with a timeout set */
     dict *blocking_keys;        /* Keys with clients waiting for data (BLPOP) */
     dict *io_keys;              /* Keys with clients waiting for DS I/O */
@@ -391,7 +401,11 @@ typedef struct zskiplist {
 } zskiplist;
 
 typedef struct zset {
-    dict *dict;
+#ifndef REDIS_STATIC_LIB
+    dict *dict;                 /* The keyspace for this DB */
+#else
+    dict *_dict;
+#endif
     zskiplist *zsl;
 } zset;
 
@@ -781,11 +795,16 @@ extern dictType setDictType;
 extern dictType zsetDictType;
 extern dictType clusterNodesDictType;
 extern double R_Zero, R_PosInf, R_NegInf, R_Nan;
-dictType hashDictType;
+
+#ifndef REDIS_STATIC_LIB
+	dictType hashDictType;
+#endif
 
 /*-----------------------------------------------------------------------------
  * Functions prototypes
  *----------------------------------------------------------------------------*/
+
+int redis_main(int argc, char **argv);
 
 /* Utils */
 long long ustime(void);
@@ -982,7 +1001,9 @@ int dsDel(redisDb *db, robj *key);
 int dsExists(redisDb *db, robj *key);
 void dsFlushDb(int dbid);
 int dsRdbSaveBackground(char *filename);
+int redis_dsRdbSaveBackground(char *filename);
 int dsRdbSave(char *filename);
+void *dsRdbSave_thread(void *arg);
 
 /* Disk Store Cache */
 void dsInit(void);

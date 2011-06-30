@@ -474,7 +474,7 @@ werr:
     return NULL;
 }
 
-int dsRdbSaveBackground(char *filename) {
+int redis_dsRdbSaveBackground(char *filename) {
     pthread_t thread;
 
     if (pthread_create(&thread,NULL,dsRdbSave_thread,zstrdup(filename)) != 0) {

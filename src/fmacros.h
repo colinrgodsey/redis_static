@@ -1,3 +1,4 @@
+#ifndef _BSD_SOURCE
 #ifndef _REDIS_FMACRO_H
 #define _REDIS_FMACRO_H
 
@@ -12,4 +13,5 @@
 #define _LARGEFILE_SOURCE
 #define _FILE_OFFSET_BITS 64
 
+#endif
 #endif

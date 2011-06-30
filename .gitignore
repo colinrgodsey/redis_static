@@ -2,6 +2,7 @@
 *.o
 *.rdb
 *.log
+.lock-wscript
 redis-cli
 redis-server
 redis-benchmark

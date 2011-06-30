@@ -4,6 +4,7 @@ TARGETS=32bit noopt test
 
 all:
 	cd src && $(MAKE) $@
+	node-waf configure build
 
 install: dummy
 	cd src && $(MAKE) $@
@@ -13,6 +14,7 @@ clean:
 	cd deps/hiredis && $(MAKE) $@
 	cd deps/linenoise && $(MAKE) $@
 	cd deps/jemalloc && $(MAKE) distclean
+	node-waf clean
 
 $(TARGETS):
 	cd src && $(MAKE) $@
