@@ -76,20 +76,23 @@ Handle<Value> redis_unlock(const Arguments &args) {
 Handle<Value> redis_get(const Arguments &args) {
 	HandleScope scope;
 
-	String::Utf8Value key(args[0]);
-	char *k = *key;
+	String::Utf8Value _key(args[0]);
+	char *k = *_key;
 
-	robj *val = lookupKeyRead(&server.db[0], createStringObject(k, strlen(k)));
+	robj *key = createStringObject(k, strlen(k));
+	expireIfNeeded(&server.db[0], key);
+	robj *val = lookupKeyRead(&server.db[0], key);
 
 	if(!val) return Null();
 
 	if(val->type != REDIS_STRING) return ThrowException(Exception::TypeError(String::New("Redis type not a string!")));
 
-	if (val->encoding == REDIS_ENCODING_RAW) {
+	if (val->encoding != REDIS_ENCODING_RAW) {
 		val = getDecodedObject(val);
 
 		Handle<Object> obj = node::Buffer::NewReferenceBuffer((char *)val->ptr, sdslen((char *)val->ptr));
 
+		//this... is bad right?
 		decrRefCount(val);
 
 		return scope.Close(obj);
@@ -98,6 +101,28 @@ Handle<Value> redis_get(const Arguments &args) {
 	Handle<Object> obj = node::Buffer::NewReferenceBuffer((char *)val->ptr, sdslen((char *)val->ptr));
 
 	return scope.Close(obj);
+}
+
+Handle<Value> redis_set(const Arguments &args) {
+	HandleScope scope;
+
+	String::Utf8Value _key(args[0]);
+	String::Utf8Value _val(args[1]);
+	int exp = args.Length() > 2 ? args[2]->Int32Value() : 0;
+	bool nx = args[3] == True();
+
+	robj *key = createStringObject(*_key, strlen(*_key));
+	robj *val = createStringObject(*_val, strlen(*_val));
+
+	if (lookupKeyWrite(&server.db[0],key) != NULL && nx) {
+		return False();
+	}
+
+	setKey(&server.db[0],key,val);
+	server.dirty++;
+	if (exp) setExpire(&server.db[0],key,time(NULL)+exp);
+
+	return True();
 }
 
 Handle<Value> run_redis(const Arguments &args) {
@@ -129,6 +154,7 @@ extern "C" void init (Handle<Object> target)
 
     templ->Set(String::New("run_redis"), FunctionTemplate::New(run_redis));
     templ->Set(String::New("get"), FunctionTemplate::New(redis_get));
+    templ->Set(String::New("set"), FunctionTemplate::New(redis_set));
     templ->Set(String::New("lock"), FunctionTemplate::New(redis_lock));
     templ->Set(String::New("unlock"), FunctionTemplate::New(redis_unlock));
 

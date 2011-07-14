@@ -498,6 +498,8 @@ int rdbSaveBackground(char *filename) {
     if ((childpid = fork()) == 0) {
         int retval;
 
+
+
         /* Child */
         if (server.ipfd > 0) close(server.ipfd);
         if (server.sofd > 0) close(server.sofd);

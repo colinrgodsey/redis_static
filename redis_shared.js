@@ -5,8 +5,12 @@ exports.RedisShared = function() {
     	redis_shared.run_redis.apply(redis_shared, arguments);
     };
     
-    this.get = function() {
+    this.get = function(key) {
     	return redis_shared.get.apply(redis_shared, arguments);
+    };
+    
+    this.set = function(key, value, exp, nx) {
+        return redis_shared.set.apply(redis_shared, arguments);
     };
     
     this.execute = function(f) {

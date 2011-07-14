@@ -700,7 +700,7 @@ void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
         redisLog(REDIS_WARNING, "Background append only file rewriting error");
     } else {
         redisLog(REDIS_WARNING,
-            "Background append only file rewriting terminated by signal %d exitcode %d",
+            "Background append only file rewriting terminated by signal %i exitcode %i",
               bysignal, exitcode);
     }
 cleanup:

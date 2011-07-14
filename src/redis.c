@@ -651,18 +651,21 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
         else
         	pid = server.bgrewritechildpid;
 
-        if ((pid = wait4(pid, &statloc,WNOHANG,NULL)) != 0) {
+        //if ((pid = wait4(pid, &statloc,WNOHANG,NULL)) != 0) {
+        if ((pid = wait3(&statloc,WNOHANG,NULL)) != 0) {
             int exitcode = WEXITSTATUS(statloc);
             int bysignal = 0;
-            
-            if (WIFSIGNALED(statloc)) bysignal = WTERMSIG(statloc);
 
-            if (pid == server.bgsavechildpid) {
-                backgroundSaveDoneHandler(exitcode,bysignal);
-            } else {
-                backgroundRewriteDoneHandler(exitcode,bysignal);
+            if(exitcode != -1 && exitcode != 127) {
+				if (WIFSIGNALED(statloc)) bysignal = WTERMSIG(statloc);
+
+				if (pid == server.bgsavechildpid) {
+					backgroundSaveDoneHandler(exitcode,bysignal);
+				} else {
+					backgroundRewriteDoneHandler(exitcode,bysignal);
+				}
+				updateDictResizePolicy();
             }
-            updateDictResizePolicy();
         }
     } else if (server.bgsavethread != (pthread_t) -1) {
         if (server.bgsavethread != (pthread_t) -1) {
